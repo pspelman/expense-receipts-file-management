@@ -89,17 +89,15 @@ def get_todo_items(dir_paths, pending_items_dir_name="todo"):
     todos = set()
     for dir_path in dir_paths:
         if "todo" in get_subdir_names(dir_path):
-            # get the filenames in the todo folder
+            # get the file_names in the todo folder
             path_todo_dir = f"{dir_path}/{pending_items_dir_name}"
             dir_todo_files = [
-                f"{path_todo_dir}/{filename}"
-                for filename in os.listdir(path_todo_dir)
-                if os.path.isfile(os.path.join(path_todo_dir, filename))
-                # and ".DS_Store" not in filename
-                and not filename.startswith(".")
+                f"{path_todo_dir}/{file_name}"
+                for file_name in os.listdir(path_todo_dir)
+                if os.path.isfile(os.path.join(path_todo_dir, file_name))
+                # and ".DS_Store" not in file_name
+                and not file_name.startswith(".")
             ]
-            print(f"adding todo items from {dir_path} ...")
-            print(json.dumps(dir_todo_files, indent=4, sort_keys=True))
             todos = todos.union(set(dir_todo_files))
 
     return todos

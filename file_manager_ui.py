@@ -1,15 +1,24 @@
+import json
 import os
 import tkinter as tk
+from pathlib import Path
 from tkinter import filedialog, messagebox
 
-from file_methods import open_file_with_system_default
+from file_methods import (
+    open_file_with_system_default,
+    get_subdir_paths,
+    get_subdir_names,
+    get_todo_items,
+)
 
 
 # create the directory opener UI
 class DirectoryOpenerApp:
     def __init__(self, _root, _base_path=""):
-        self.files_to_process = set()
-        self.num_files_to_process = 0
+        self.todo_dirs = None
+        self.todo_dir_paths = None
+        self.items_to_do = set()
+        self.num_items_to_do = 0
         self.set_dir_btn = None
         self.items_frame = None
         self.items_label = "Select a directory to begin"
@@ -54,17 +63,21 @@ class DirectoryOpenerApp:
     def update_items_frame_label(self, num_items=None):
         # add widgets to the frame
         if num_items == 0:
-            self.items_label = tk.Label(self.items_frame, text=f"{num_items} items to process")
+            self.items_label = tk.Label(
+                self.items_frame, text=f"{num_items} items to process"
+            )
         else:
-            self.items_label = tk.Label(self.items_frame, text=f"{self.num_files_to_process} items to process")
+            self.items_label = tk.Label(
+                self.items_frame, text=f"{self.num_items_to_do} items to process"
+            )
         self.items_label.pack(pady=5)
 
     def set_working_directory(self, target_dir=None):
-        self.num_files_to_process = 0
         target_dir = target_dir if target_dir else filedialog.askdirectory()
         if target_dir:
             self.working_directory = target_dir
-            self.list_directory_contents()
+            # self.list_directory_contents()
+        self.refresh_to_do_list()
 
     def list_directory_contents(self):
         self.clear_items_frame()
@@ -75,12 +88,19 @@ class DirectoryOpenerApp:
             return
 
         # create buttons for each item
-        self.num_files_to_process = 0
-        self.files_to_process = set()
+        # self.create_buttons_for_all_todo_items(files)
+        self.create_buttons_for_file_paths(self.items_to_do)
+
+        self.update_items_frame_label()
+        # Update the buttons_frame to re-layout its children
+        # self.items_frame.update_idletasks()
+
+    def create_buttons_for_file_paths(self, files):
+        # clear all the buttons first
+
         for file_name in files:
             if file_name.startswith("."):  # do not show hidden files
                 continue
-            self.num_files_to_process += 1
             # could add logic for differentiating between files and folders
             file_path = f"{self.working_directory}/{file_name}"
             btn = tk.Button(
@@ -91,9 +111,24 @@ class DirectoryOpenerApp:
             btn.pack(fill="x")
             # btn.pack()
 
-        self.update_items_frame_label()
-        # Update the buttons_frame to re-layout its children
-        # self.items_frame.update_idletasks()
+    def create_buttons_for_all_todo_items(self):
+        self.clear_items_frame()
+        print(f"creating buttons for all {len(self.items_to_do)} todo items")
+        for file_path in self.items_to_do:
+            if not Path(file_path).is_file():
+                continue
+            file_name = Path(file_path).name
+
+            if file_name.startswith("."):  # do not show hidden files
+                continue
+            # could add logic for differentiating between files and folders
+            btn = tk.Button(
+                self.items_frame,
+                text=file_name,
+                command=lambda f=file_path: self.open_file(f),
+            )
+            btn.pack(fill="x")
+            # btn.pack()
 
     def clear_items_frame(self):
         print(f"called clear_items_frame()")
@@ -119,6 +154,34 @@ class DirectoryOpenerApp:
         except Exception as e:
             messagebox.showerror("Error", f"Could not open file: {e}")
 
+    def scan_and_update_outstanding_items(self):
+        expense_receipts_path = self.working_directory
+
+        try:
+            self.todo_dir_paths = get_subdir_paths(expense_receipts_path)
+            self.todo_dirs = get_subdir_names(expense_receipts_path)
+            print(
+                f"the following directories will be searched: \n",
+                json.dumps(self.todo_dirs, indent=4, sort_keys=True),
+            )
+            #  if it exists, get the list of files in it
+            self.items_to_do = sorted(list(get_todo_items(self.todo_dir_paths)))
+            print(
+                f"the following todo items were identified: \n",
+                json.dumps(self.items_to_do, indent=4, sort_keys=True),
+            )
+        except Exception as e:
+            print(
+                f"issue encountered when trying to scan for directories and items: ", e
+            )
+        if not self.todo_dirs or not self.todo_dir_paths:
+            raise RuntimeError("cannot update without valid paths")
+
+    def refresh_to_do_list(self):
+        self.scan_and_update_outstanding_items()
+        self.create_buttons_for_all_todo_items()
+
+
 
 # create a frame within the main window
 # inner_frame = tk.Frame(root, bg="gray", bd=2, relief="sunken")
@@ -132,11 +195,9 @@ class DirectoryOpenerApp:
 
 
 # Create the root window
-root = tk.Tk()
-root.geometry("1250x810+100+0")
-root.title("Main Window")
-base_path = "/File/Location/Goes/Here"
-app = DirectoryOpenerApp(root, base_path)
-
-# run the app
-root.mainloop()
+# root = tk.Tk()
+# root.geometry("1250x810+100+0")
+# root.title("Main Window")
+# base_path = "/Base/File/Path"
+# app = DirectoryOpenerApp(root, base_path)
+# root.mainloop()

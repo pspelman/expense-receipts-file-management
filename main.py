@@ -1,6 +1,8 @@
 import json
 import os
+import tkinter as tk
 
+from file_manager_ui import DirectoryOpenerApp
 from file_methods import (
     open_file_with_system_default,
     get_subdir_names,
@@ -23,21 +25,29 @@ def process_todo_items(todo_list):
 
 
 if __name__ == "__main__":
+    base_path = "/Users/phil/Library/CloudStorage/GoogleDrive-phil@sisusifu.com/Shared drives/SisuSifu"
     # set the path to scan
-    base_path = "/File/Location/Goes/Here"
     expense_receipts_path = f"{base_path}/SS - Receipts - 2023"
+
+    # if using the UI, create it and use it to get the todo items
+    receipt_management_ui = tk.Tk()
+    receipt_management_ui.geometry("1250x810+100+0")
+    receipt_management_ui.title("Main Window")
+    app = DirectoryOpenerApp(receipt_management_ui, base_path)
+    receipt_management_ui.mainloop()
+
     # all subdirectories - paths and names
-    dir_paths = get_subdir_paths(expense_receipts_path)
-    dirs = get_subdir_names(expense_receipts_path)
-
-    # check each path for a to-do directory
-    #  if it exists, get the list of files in it
-    items_todo = sorted(list(get_todo_items(dir_paths)))
-    print(json.dumps(items_todo, indent=4, sort_keys=True))
-
-    # the "script-based" version of this project would probably use a loop like this to go through each file
-    if len(items_todo):
-        process_todo_items(items_todo)
+    # dir_paths = get_subdir_paths(expense_receipts_path)
+    # dirs = get_subdir_names(expense_receipts_path)
+    #
+    # # check each path for a to-do directory
+    # #  if it exists, get the list of files in it
+    # items_todo = sorted(list(get_todo_items(dir_paths)))
+    # print(json.dumps(items_todo, indent=4, sort_keys=True))
+    #
+    # # the "script-based" version of this project would probably use a loop like this to go through each file
+    # if len(items_todo):
+    #     process_todo_items(items_todo)
 
     # TODO: start a loop scanning the path for every folder with a todo
     # TODO: grab the name of the parent folder (e.g., "hardware") that comes before the todo directory
