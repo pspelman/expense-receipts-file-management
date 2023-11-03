@@ -7,10 +7,10 @@ import sys
 import os
 import time
 
-from file_methods import open_file_with_system_default
+from file_methods import open_file_with_system_default, open_file_and_monitor
 
 
-def move_file_to_entered(file_path):
+def move_file_to_done_dir(file_path):
     print(f"moving {file_path} to the 'entered' directory")
 
 
@@ -31,17 +31,18 @@ def get_subdir_paths(target_dir):
 
 
 # Press the green button in the gutter to run the script.
-def get_todo_items(dir_paths):
+def get_todo_items(dir_paths, pending_items_dir_name="todo"):
     todos = set()
     for dir_path in dir_paths:
         if "todo" in get_subdir_names(dir_path):
             # get the filenames in the todo folder
-            path_todo_dir = f"{dir_path}/todo"
+            path_todo_dir = f"{dir_path}/{pending_items_dir_name}"
             dir_todo_files = [
                 f"{path_todo_dir}/{filename}"
                 for filename in os.listdir(path_todo_dir)
                 if os.path.isfile(os.path.join(path_todo_dir, filename))
-                and ".DS_Store" not in filename
+                # and ".DS_Store" not in filename
+                and not filename.startswith(".")
             ]
             print(f"adding todo items from {dir_path} ...")
             print(json.dumps(dir_todo_files, indent=4, sort_keys=True))
@@ -55,26 +56,23 @@ def process_todo_items(todo_list):
     print(f"there are {total_items} items to process")
     input("press return to begin")
     for item in todo_list:
-        print(f"processing '{os.path.basename(item)}'")
-        input("press the return key to continue")
-        open_file_with_system_default(item)
+        next_file = os.path.basename(item)
+        input(f"\n\nNEXT: '{next_file}'\n(press return to open)")
+        # open_file_and_monitor(file_path=item)
+        open_file_with_system_default(file_path=item)
+        options = [('Enter')]
         # TODO: ask if the user wants to move the file to complete or skip to the next file
 
 
-
 if __name__ == "__main__":
-    # TODO: set the path to scan
+    # set the path to scan
     base_path = "/Users/phil/Library/CloudStorage/GoogleDrive-phil@sisusifu.com/Shared drives/SisuSifu"
     expense_receipts_path = f"{base_path}/SS - Receipts - 2023"
-    print(f"scanning path: {expense_receipts_path}")
-    # all sub-directories
-    dirs = get_subdir_names(expense_receipts_path)
-    print(json.dumps(dirs, indent=4, sort_keys=True))
-
+    # all subdirectories - paths and names
     dir_paths = get_subdir_paths(expense_receipts_path)
-    print(json.dumps(dir_paths, indent=4, sort_keys=True))
+    dirs = get_subdir_names(expense_receipts_path)
 
-    # TODO: check each path for a "todo" directory
+    # check each path for a to-do directory
     #  if it exists, get the list of files in it
     items_todo = sorted(list(get_todo_items(dir_paths)))
     print(json.dumps(items_todo, indent=4, sort_keys=True))
