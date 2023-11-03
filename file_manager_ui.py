@@ -9,12 +9,16 @@ from file_methods import (
     get_subdir_paths,
     get_subdir_names,
     get_todo_items,
+    move_file_to_done_dir,
+    open_in_file_manager,
 )
 
 
 # create the directory opener UI
 class DirectoryOpenerApp:
     def __init__(self, _root, _base_path=""):
+        self.log_file_dir = None
+        self.refresh_btn = None
         self.todo_dirs = None
         self.todo_dir_paths = None
         self.items_to_do = set()
@@ -28,7 +32,7 @@ class DirectoryOpenerApp:
         # create the control frame
         # create a frame for control buttons
         self.control_frame = tk.Frame(self.root)
-        self.control_frame.pack(padx=10, pady=10, fill="x")
+        self.control_frame.pack(padx=30, pady=10, fill="x")
 
         # set up control buttons
         self.init_control_buttons()
@@ -45,10 +49,10 @@ class DirectoryOpenerApp:
             command=self.set_working_directory,
         )
         self.set_dir_btn.pack(side="left", fill="x", expand=True)
-        self.clear_items_btn = tk.Button(
-            self.control_frame, text="Clear items", command=self.clear_items_frame
+        self.refresh_btn = tk.Button(
+            self.control_frame, text="Refresh", command=self.refresh_to_do_list
         )
-        self.clear_items_btn.pack(side="right", fill="x", expand=True)
+        self.refresh_btn.pack(side="right", fill="x", expand=True)
 
     def update_items_frame(self):
         if self.items_frame:
@@ -58,7 +62,7 @@ class DirectoryOpenerApp:
         # create a frame for the file items buttons
         self.items_frame = tk.Frame(self.root, bg="gray", bd=2, relief="sunken")
         self.items_frame.pack(padx=5, pady=5, fill="x", expand=True)
-        self.update_items_frame_label()
+        # self.update_items_frame_label()
 
     def update_items_frame_label(self, num_items=None):
         # add widgets to the frame
@@ -77,6 +81,7 @@ class DirectoryOpenerApp:
         if target_dir:
             self.working_directory = target_dir
             # self.list_directory_contents()
+            self.log_file_dir = target_dir
         self.refresh_to_do_list()
 
     def list_directory_contents(self):
@@ -91,7 +96,7 @@ class DirectoryOpenerApp:
         # self.create_buttons_for_all_todo_items(files)
         self.create_buttons_for_file_paths(self.items_to_do)
 
-        self.update_items_frame_label()
+        # self.update_items_frame_label()
         # Update the buttons_frame to re-layout its children
         # self.items_frame.update_idletasks()
 
@@ -121,14 +126,39 @@ class DirectoryOpenerApp:
 
             if file_name.startswith("."):  # do not show hidden files
                 continue
-            # could add logic for differentiating between files and folders
-            btn = tk.Button(
-                self.items_frame,
-                text=file_name,
+
+            row_frame = tk.Frame(self.items_frame)
+            row_frame.pack(fill="x")
+
+            # Label for the file's name
+            file_label = tk.Label(row_frame, text=file_name, anchor="w")
+            file_label.pack(side="left", fill="x", expand=True)
+
+            # Button to OPEN the file
+            open_btn = tk.Button(
+                row_frame,
+                text="Open",
                 command=lambda f=file_path: self.open_file(f),
             )
-            btn.pack(fill="x")
-            # btn.pack()
+            # open_btn.pack(side="left", fill='x', padx=(10, 0))
+            open_btn.pack(side='left')
+
+            go_to_file_btn = tk.Button(
+                row_frame,
+                text="Go to file",
+                command=lambda f=file_path: open_in_file_manager(f)
+            )
+            # go_to_file_btn.pack()
+            go_to_file_btn.pack(side='left')
+
+            # Button to MOVE the file to the DONE directory
+            done_btn = tk.Button(
+                row_frame,
+                text="Move to DONE",
+                command=lambda f=file_path: self.move_to_done(f),
+            )
+            # done_btn.pack()
+            done_btn.pack(side='left')
 
     def clear_items_frame(self):
         print(f"called clear_items_frame()")
@@ -136,7 +166,7 @@ class DirectoryOpenerApp:
         for widget in self.items_frame.winfo_children():
             print(f"destroying {widget}")
             widget.destroy()
-        self.update_items_frame_label()
+        # self.update_items_frame_label()
         # self.update_items_frame()
         # self.root.update_idletasks()
 
@@ -181,6 +211,16 @@ class DirectoryOpenerApp:
         self.scan_and_update_outstanding_items()
         self.create_buttons_for_all_todo_items()
 
+    def move_to_done(self, f):
+        print(f"moving to 'entered' directory: {f}")
+        move_file_to_done_dir(f, 'entered', log_file_dir=self.log_file_dir)
+        # may want to save a log of these actions
+        self.refresh_to_do_list()
+
+
+        # from the path of the file, go up one level
+        # move the file to the 'entered' directory
+        # if the entered directory does not exist, create it
 
 
 # create a frame within the main window

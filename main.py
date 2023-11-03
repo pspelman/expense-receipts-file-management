@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     # if using the UI, create it and use it to get the todo items
     receipt_management_ui = tk.Tk()
-    receipt_management_ui.geometry("1250x810+100+0")
+    # receipt_management_ui.geometry("1250x810+100+0")
     receipt_management_ui.title("Main Window")
     app = DirectoryOpenerApp(receipt_management_ui, base_path)
     receipt_management_ui.mainloop()
