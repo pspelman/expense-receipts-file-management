@@ -120,11 +120,6 @@ class DirectoryOpenerApp:
             messagebox.showerror("Error", f"Could not open file: {e}")
 
 
-# Create the root window
-root = tk.Tk()
-root.geometry("1250x810+100+0")
-root.title("Main Window")
-
 # create a frame within the main window
 # inner_frame = tk.Frame(root, bg="gray", bd=2, relief="sunken")
 # inner_frame.pack(padx=10, pady=10, fill="both", expand=True)
@@ -135,7 +130,12 @@ root.title("Main Window")
 # button.pack(pady=5)
 #
 
-base_path = "/Users/phil/Library/CloudStorage/GoogleDrive-phil@sisusifu.com/Shared drives/SisuSifu"
+
+# Create the root window
+root = tk.Tk()
+root.geometry("1250x810+100+0")
+root.title("Main Window")
+base_path = "/File/Location/Goes/Here"
 app = DirectoryOpenerApp(root, base_path)
 
 # run the app
